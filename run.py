@@ -13,11 +13,14 @@ parser.add_argument('--train', default=False, action='store_true')
 args = parser.parse_args()
 print(args)
 if not args.train:
-    for content_filename in os.listdir(CONTENT_DIR):
-        content_path = os.path.join(CONTENT_DIR, content_filename)
-        output_path = os.path.join(OUTPUT_DIR, content_filename)
-        suffix = os.path.splitext(content_filename)[1][1:].lower()
-        transfer_target_media(mode=suffix, content_media_path=content_path, output_path=output_path)
+    for style_filename in os.listdir(STYLE_DIR):
+        style_path = os.path.join(STYLE_DIR, style_filename)
+        for content_filename in os.listdir(CONTENT_DIR):
+            content_path = os.path.join(CONTENT_DIR, content_filename)
+            output_path = os.path.join(OUTPUT_DIR, content_filename+'_by_'+style_filename)
+            suffix = os.path.splitext(content_filename)[1][1:].lower()
+            transfer_target_media(mode=suffix, content_media_path=content_path, style_image_path=style_path,
+                                  output_path=output_path)
 else:
     print('train a new inverse net? [y/n]')
     s = input()

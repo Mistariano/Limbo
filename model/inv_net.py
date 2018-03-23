@@ -55,7 +55,7 @@ def conv_instance_norm_relu(x, W_shape, b_shape):
 
 
 class InverseNet:
-    def __init__(self, x, img_H, img_W):
+    def __init__(self, x):
         _, img_H, img_W, _ = x.shape
         img_H *= 4
         img_W *= 4
@@ -67,6 +67,3 @@ class InverseNet:
             self.upsampling_2 = bilinear_unsampling(self.conv_norm_relu_3, [img_H, img_W])
             self.conv_norm_relu_4 = conv_instance_norm_relu(self.upsampling_2, [3, 3, 64, 64], [64])
             self.out_img = conv2d(self.conv_norm_relu_4, [3, 3, 64, 3], [3])
-
-
-
