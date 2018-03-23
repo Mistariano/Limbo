@@ -5,9 +5,16 @@ import scipy.io as sio
 import numpy as np
 import PIL.Image as Image
 import scipy
-from swap import swap
+from model.swap import swap_batch
+from config import VGG_PATH
+import os
+import sys
 
-data_path = 'imagenet-vgg-verydeep-19'
+data_path = VGG_PATH
+if not os.path.exists(data_path):
+    print('Error: VGG-19 is not loaded because there\'s no file at {}'.format(data_path))
+    sys.exit(1)
+
 VGG19_LAYERS = (
     'conv1_1', 'relu1_1', 'conv1_2', 'relu1_2', 'pool1',
 

@@ -56,6 +56,9 @@ def conv_instance_norm_relu(x, W_shape, b_shape):
 
 class InverseNet:
     def __init__(self, x, img_H, img_W):
+        _, img_H, img_W, _ = x.shape
+        img_H *= 4
+        img_W *= 4
         with tf.name_scope('inv-net'):
             self.conv_norm_relu_1 = conv_instance_norm_relu(x, [3, 3, 256, 128], [128])
             self.upsampling_1 = bilinear_unsampling(self.conv_norm_relu_1, [img_H // 2, img_W // 2])
@@ -66,21 +69,4 @@ class InverseNet:
             self.out_img = conv2d(self.conv_norm_relu_4, [3, 3, 64, 3], [3])
 
 
-def inv_net(x):
-    """
-    :param x: a 4-D tensor with shape [batch_size, feature_h, feature_w, num_channel]
-    :return: out_img_tensor, train_summary, test_summary
-    """
-    with tf.name_scope('inv-net'):
-        shape = x.shape
-        _, img_H, img_W, _ = shape
-        img_H *= 4
-        img_W *= 4
-        conv_norm_relu_1 = conv_instance_norm_relu(x, [3, 3, 256, 128], [128])
-        upsampling_1 = bilinear_unsampling(conv_norm_relu_1, [img_H // 2, img_W // 2])
-        conv_norm_relu_2 = conv_instance_norm_relu(upsampling_1, [3, 3, 128, 128], [128])
-        conv_norm_relu_3 = conv_instance_norm_relu(conv_norm_relu_2, [3, 3, 128, 64], [64])
-        upsampling_2 = bilinear_unsampling(conv_norm_relu_3, [img_H, img_W])
-        conv_norm_relu_4 = conv_instance_norm_relu(upsampling_2, [3, 3, 64, 64], [64])
-        out_img = conv2d(conv_norm_relu_4, [3, 3, 64, 3], [3])
-        return out_img
+

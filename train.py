@@ -2,24 +2,25 @@
 __author__ = 'Mistariano'
 
 import tensorflow as tf
-from vgg import vgg19, preprocess_image, deprocess_single_image, preprocess_tensor, deprocess_tensor
-from swap import swap
-from inv_net import inv_net, InverseNet
+from model.vgg import vgg19, preprocess_tensor, deprocess_tensor
+from model.swap import swap_batch
+from model.inv_net import InverseNet
+from config import *
 import time
 import os
 
 
 def train_inv_net():
-    nature_img_path = 'D://projects/data/MSCOCO/train2014/'
-    style_img_path = 'D://projects/data/Painter by numbers/train/'
-    model_save_path = 'model/inverse_net_patch1/inv_net.ckpt'
-    log_dir = 'log1'
-    img_h = 256
-    img_w = 256
+    nature_img_path = TRAIN_NATURE_IMAGE_PATH
+    style_img_path = TRAIN_ART_IMAGE_PATH
+    model_save_path = TRAIN_INVERSE_NET_SAVE_PATH
+    log_dir = TRAIN_LOG_DIR
+    img_h, img_w = TRAIN_IMAGE_SIZE
+    num_itr = TRAIN_PARAMS_ITERATION
 
     with tf.name_scope('hyper_parameters'):
-        num_epochs = 2
-        lambda_tv = 1e-6
+        num_epochs = TRAIN_PARAMS_EPOCHS
+        lambda_tv = TRAIN_PARAMS_LAMBDA_TV
 
     with tf.name_scope('read'):
         nature_filenames = tf.train.string_input_producer(
@@ -58,10 +59,10 @@ def train_inv_net():
         cat2 = tf.concat((f1, f4), 0)
         cat3 = tf.concat((f2, f3), 0)
         cat4 = tf.concat((f2, f4), 0)
-        swapped1 = swap(cat1, patch_size=1)
-        swapped2 = swap(cat2, patch_size=1)
-        swapped3 = swap(cat3, patch_size=1)
-        swapped4 = swap(cat4, patch_size=1)
+        swapped1 = swap_batch(cat1, patch_size=1)
+        swapped2 = swap_batch(cat2, patch_size=1)
+        swapped3 = swap_batch(cat3, patch_size=1)
+        swapped4 = swap_batch(cat4, patch_size=1)
         features = tf.concat((features, swapped1, swapped2, swapped3, swapped4), 0)
 
     inverse_net = InverseNet(features, img_h, img_w)
@@ -104,7 +105,7 @@ def train_inv_net():
         tf.train.start_queue_runners(sess=sess)
         writer = tf.summary.FileWriter(log_dir, sess.graph)
 
-        for i in range(80000):
+        for i in range(num_itr):
             try:
                 if i % 1000:
                     start_time = time.time()
@@ -114,7 +115,8 @@ def train_inv_net():
                     start_time = time.time()
                     summary, loss_, _ = sess.run([merged, loss, train_step])
                     end_time = time.time()
-            except:
+            except Exception as e:
+                print(e)
                 print(i, 'Error, continue')
             else:
                 print(i, loss_, end_time - start_time)
@@ -123,3 +125,7 @@ def train_inv_net():
                 saver.save(sess, model_save_path)
                 print('Saved at', model_save_path)
         writer.close()
+
+
+if __name__ == '__main__':
+    train_inv_net()

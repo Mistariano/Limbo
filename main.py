@@ -2,16 +2,15 @@
 __author__ = 'Mistariano'
 
 import tensorflow as tf
-from inv_net import inv_net
-from vgg import preprocess_tensor, deprocess_tensor, vgg19_and_swap, vgg19
+from model.inv_net import InverseNet
+from model.vgg import preprocess_tensor, deprocess_tensor, vgg19
 from imageio import imread, imsave, mimread, mimsave, get_reader, get_writer, mvolread
-from swap import swap_with_patches, extract_style_patches
+from model.swap import swap_with_patches, extract_style_patches
 import time
 import config
-import argparse
 
 
-def transfer_target_media(mode, output_path, model_path=config.MODEL_PATH, style_image_path=config.STYLE_IMAGE_PATH,
+def transfer_target_media(mode, output_path, model_path=config.RUN_INVERSE_NET_PATH, style_image_path=config.STYLE_IMAGE_PATH,
                           content_media_path=config.CONTENT_IMAGE_PATH, patch_size=config.PATCH_SIZE,
                           image_size=config.IMAGE_SIZE):
     print('Transfer ({}) with mode: {}'.format(content_media_path, mode))
@@ -62,7 +61,8 @@ def transfer_target_media(mode, output_path, model_path=config.MODEL_PATH, style
         swapped = swap_with_patches(content=vgg_out_content, style_patches=style_patches_placeholder,
                                     patch_size=patch_size, one_hot=False)
 
-        inv_out_features = inv_net(swapped)
+        inv_net=InverseNet(swapped)
+        inv_out_features = inv_net.out_img
 
         output_imgs = deprocess_tensor(inv_out_features)
         mixed_img = output_imgs[0]

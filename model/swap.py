@@ -61,7 +61,7 @@ def swap_with_patches(content, style_patches, one_hot=False, patch_size=3):
     return decov
 
 
-def swap(swap_input, patch_size=3, with_style=False, one_hot=False):
+def swap_batch(swap_input, patch_size=3, with_style=False, one_hot=False):
     """
 
     :param swap_input: 0:content, 1:style
@@ -90,7 +90,6 @@ def swap(swap_input, patch_size=3, with_style=False, one_hot=False):
     if one_hot:
         with tf.name_scope('one-hot'):
             argmax = tf.argmax(conv, -1)
-
             one_hot = tf.one_hot(argmax, depth=conv.shape[-1])
     else:
         with tf.name_scope('softmax'):
@@ -100,7 +99,6 @@ def swap(swap_input, patch_size=3, with_style=False, one_hot=False):
             prob = tf.exp(w)
             sum = tf.reshape(tf.reduce_sum(prob, axis=-1), (conv.shape[0], conv.shape[1], conv.shape[2], 1))
             one_hot = prob / sum
-            # one_hot=tf.nn.softmax(conv,axis=-1)
     decov = tf.nn.conv2d_transpose(one_hot, filter=style_patches, strides=[1, 1, 1, 1],
                                    output_shape=content_image_feature.shape)
     decov = decov / (patch_size ** 2)
